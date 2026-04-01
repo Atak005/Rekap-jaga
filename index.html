@@ -7,165 +7,200 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        .selected-column { border: 2px solid #059669 !important; background-color: #ecfdf5 !important; }
+        .selected-col { background-color: #d1fae5 !important; border: 2px solid #059669 !important; }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen p-2 md:p-6 font-sans">
-    <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
-        <div class="bg-gradient-to-r from-blue-700 to-blue-500 p-6 text-white text-center">
-            <h1 class="text-2xl font-extrabold tracking-tight">REKAP TINDAKAN PERAWAT</h1>
-            <p class="text-blue-100 text-xs mt-1">Sistem Rekap Cepat - Khusus Magelang</p>
+<body class="bg-slate-100 min-h-screen p-2">
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden">
+        <div class="bg-blue-700 p-5 text-white flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold italic">Rekap Jaga v3</h1>
+                <p class="text-xs opacity-80">Support Merged Cells & Multi-Column Search</p>
+            </div>
+            <button onclick="location.reload()" class="text-xs bg-blue-800 px-3 py-1 rounded">Reset</button>
         </div>
 
-        <div class="p-4 md:p-6 space-y-6">
-            <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                <label class="block text-blue-800 text-sm font-bold mb-2">1. Unggah File Excel Anda:</label>
-                <input type="file" id="fileInput" accept=".xlsx, .xls" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"/>
+        <div class="p-4 space-y-6">
+            <div id="step1">
+                <label class="block text-sm font-bold text-slate-700 mb-3 border-l-4 border-blue-600 pl-2">STEP 1: UNGGAH FILE EXCEL</label>
+                <input type="file" id="fileInput" accept=".xlsx, .xls" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
             </div>
 
-            <div id="configSection" class="hidden space-y-4 animate-fade-in">
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <h2 class="text-slate-700 text-sm font-bold mb-3 border-b pb-2">2. Pengaturan Kolom (Klik untuk Memilih)</h2>
-                    
-                    <div class="mb-4">
-                        <label class="block text-xs font-semibold text-slate-500 mb-1">Baris Header (Biasanya baris 3):</label>
-                        <input type="number" id="headerRow" value="3" min="1" class="w-20 p-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500" onchange="readColumns()">
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-blue-600 mb-1 uppercase">Target Kode (Contoh: Kolom A):</label>
-                            <select id="selKode" class="w-full p-2.5 border rounded-xl bg-white text-sm shadow-sm focus:border-blue-500"></select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-blue-600 mb-1 uppercase">Target Nama (Contoh: S, T, U):</label>
-                            <select id="selPerawat" class="w-full p-2.5 border rounded-xl bg-white text-sm shadow-sm focus:border-blue-500" multiple size="3"></select>
-                            <p class="text-[10px] text-slate-400 mt-1 italic">*Tahan tombol untuk pilih lebih dari satu (Pagi, Siang, Malam)</p>
-                        </div>
-                    </div>
+            <div id="step2" class="hidden animate-pulse-once">
+                <label class="block text-sm font-bold text-slate-700 mb-3 border-l-4 border-orange-500 pl-2">STEP 2: TENTUKAN BARIS HEADER & KOLOM</label>
+                <p class="text-[10px] text-slate-500 mb-2 font-semibold">Klik pada nama kolom di tabel bawah untuk memilih:</p>
+                
+                <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
+                    <button id="btnSetKode" onclick="mode='kode'" class="shrink-0 bg-blue-100 text-blue-800 border-2 border-blue-600 px-4 py-2 rounded-lg text-xs font-bold shadow-sm">🎯 Pilih Kolom KODE</button>
+                    <button id="btnSetNama" onclick="mode='nama'" class="shrink-0 bg-slate-100 text-slate-800 border-2 border-slate-300 px-4 py-2 rounded-lg text-xs font-bold shadow-sm">👥 Pilih Kolom NAMA (Bisa >1)</button>
                 </div>
 
-                <div class="bg-white p-4 rounded-xl border-2 border-blue-200 shadow-sm space-y-4">
-                    <h2 class="text-blue-800 text-sm font-bold text-center border-b pb-2 uppercase">3. Filter Pencarian</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <input type="text" id="filterKode" placeholder="Kode (613, 614, 620...)" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
-                        <input type="text" id="filterNama" placeholder="Nama (wiwi, wiwid, lutfi...)" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-                    <button onclick="jalankanRekap()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-95">
-                        TAMPILKAN DATA SEKARANG
-                    </button>
+                <div class="overflow-x-auto border rounded-lg shadow-inner bg-slate-50 max-h-64">
+                    <table id="previewTable" class="w-full text-[10px] text-left border-collapse cursor-pointer">
+                        </table>
+                </div>
+                
+                <div class="mt-4 p-3 bg-blue-50 rounded-lg text-[11px] text-blue-800 border border-blue-200">
+                    <strong>Konfigurasi Aktif:</strong><br>
+                    Kolom Kode: <span id="infoKode" class="font-bold">-</span><br>
+                    Kolom Nama: <span id="infoNama" class="font-bold">-</span>
+                    <button onclick="kunciKonfigurasi()" class="mt-3 block w-full bg-blue-600 text-white font-bold py-2 rounded shadow">KUNCI & LANJUT</button>
                 </div>
             </div>
-        </div>
 
-        <div id="hasilSection" class="hidden p-4 md:p-6 bg-slate-50 border-t">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="font-extrabold text-slate-800">Ditemukan: <span id="jumlahData" class="text-blue-600 text-2xl">0</span></h3>
-                <button onclick="window.print()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-300">CETAK PDF</button>
+            <div id="step3" class="hidden space-y-4 pt-4 border-t-2 border-dashed">
+                <label class="block text-sm font-bold text-slate-700 mb-1 border-l-4 border-green-600 pl-2">STEP 3: PENCARIAN (OR)</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="text" id="filterKode" placeholder="Kode (613, 614, ...)" class="p-3 border-2 border-slate-200 rounded-xl outline-none focus:border-blue-500 shadow-sm">
+                    <input type="text" id="filterNama" placeholder="Nama (wiwid, wiwi, ...)" class="p-3 border-2 border-slate-200 rounded-xl outline-none focus:border-blue-500 shadow-sm">
+                </div>
+                <button onclick="jalankanRekap()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 text-lg">
+                    CEK REKAP SEKARANG
+                </button>
             </div>
-            <div class="overflow-x-auto border rounded-xl shadow-inner bg-white max-h-[600px]">
-                <table class="w-full text-[11px] text-left border-collapse">
-                    <thead class="bg-slate-100 sticky top-0 shadow-sm">
-                        <tr id="headTabel"></tr>
-                    </thead>
-                    <tbody id="bodyTabel" class="divide-y divide-slate-100"></tbody>
-                </table>
+
+            <div id="hasilSection" class="hidden space-y-3">
+                <div class="flex justify-between items-end border-b-2 pb-2">
+                    <h3 class="font-black text-slate-800">HASIL TEMUAN: <span id="jumlahData" class="text-blue-700 text-2xl">0</span></h3>
+                </div>
+                <div class="overflow-x-auto border rounded-xl shadow-md bg-white max-h-[600px]">
+                    <table class="w-full text-[10px] text-left border-collapse">
+                        <thead id="headTabel" class="bg-slate-800 text-white sticky top-0"></thead>
+                        <tbody id="bodyTabel" class="divide-y divide-slate-200"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        let workbookData;
-        let sheetJson = [];
+        let rawData = [];
+        let mode = 'kode'; 
+        let selectedKodeCol = null;
+        let selectedNamaCols = [];
 
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const reader = new FileReader();
             reader.onload = function(e) {
                 const data = new Uint8Array(e.target.result);
-                workbookData = XLSX.read(data, {type: 'array'});
-                readColumns();
+                const wb = XLSX.read(data, {type: 'array'});
+                // Kita ambil mentah (header:1) agar bisa handle baris kosong/merged
+                rawData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, defval: ""});
+                showPreview();
             };
             reader.readAsArrayBuffer(e.target.files[0]);
         });
 
-        function readColumns() {
-            if(!workbookData) return;
-            const hRow = parseInt(document.getElementById('headerRow').value) || 1;
-            const sheet = workbookData.Sheets[workbookData.SheetNames[0]];
+        function showPreview() {
+            document.getElementById('step2').classList.remove('hidden');
+            const table = document.getElementById('previewTable');
+            table.innerHTML = "";
             
-            // Mengambil JSON dengan range baris header (misal baris 3 maka range hRow-1)
-            sheetJson = XLSX.utils.sheet_to_json(sheet, {range: hRow - 1, defval: ""});
+            // Ambil 20 baris pertama
+            const previewRows = rawData.slice(0, 25); 
             
-            if(sheetJson.length > 0) {
-                const cols = Object.keys(sheetJson[0]);
-                const sK = document.getElementById('selKode');
-                const sP = document.getElementById('selPerawat');
-                sK.innerHTML = ""; sP.innerHTML = "";
-                
-                cols.forEach(c => {
-                    sK.add(new Option(c, c));
-                    sP.add(new Option(c, c));
+            previewRows.forEach((row, rIdx) => {
+                const tr = document.createElement('tr');
+                row.forEach((cell, cIdx) => {
+                    const td = document.createElement(rIdx === 0 ? 'th' : 'td');
+                    td.className = `p-2 border border-slate-300 min-w-[80px] ${rIdx < 5 ? 'bg-slate-200 font-bold' : ''}`;
+                    td.innerText = cell;
+                    td.onclick = () => selectColumn(cIdx, cell);
+                    td.setAttribute('data-col', cIdx);
+                    tr.appendChild(td);
                 });
-                
-                // Set default auto (Berdasarkan screenshot Mas)
-                if(cols.includes("Nama Pasien")) sK.value = cols[0]; // Kolom A biasanya pertama
-                
-                document.getElementById('configSection').classList.remove('hidden');
+                table.appendChild(tr);
+            });
+        }
+
+        function selectColumn(index, label) {
+            if (mode === 'kode') {
+                selectedKodeCol = index;
+                document.getElementById('infoKode').innerText = `Kolom ke-${index + 1} (${label})`;
+                highlight();
+            } else {
+                if (!selectedNamaCols.includes(index)) {
+                    selectedNamaCols.push(index);
+                } else {
+                    selectedNamaCols = selectedNamaCols.filter(i => i !== index);
+                }
+                document.getElementById('infoNama').innerText = selectedNamaCols.map(i => i + 1).join(', ');
+                highlight();
             }
+        }
+
+        function highlight() {
+            // Reset highlight
+            document.querySelectorAll('td, th').forEach(el => el.classList.remove('bg-blue-200', 'bg-green-200', 'border-blue-600', 'border-green-600'));
+            
+            // Highlight Kode
+            if(selectedKodeCol !== null) {
+                document.querySelectorAll(`[data-col="${selectedKodeCol}"]`).forEach(el => el.classList.add('bg-blue-100', 'border-blue-400'));
+            }
+            // Highlight Nama
+            selectedNamaCols.forEach(cIdx => {
+                document.querySelectorAll(`[data-col="${cIdx}"]`).forEach(el => el.classList.add('bg-green-100', 'border-green-400'));
+            });
+        }
+
+        function kunciKonfigurasi() {
+            if (selectedKodeCol === null || selectedNamaCols.length === 0) {
+                alert("Pilih dulu kolom KODE dan kolom NAMA!");
+                return;
+            }
+            document.getElementById('step3').classList.remove('hidden');
+            document.getElementById('step3').scrollIntoView({behavior: 'smooth'});
         }
 
         function jalankanRekap() {
             const kodes = document.getElementById('filterKode').value.split(',').map(s => s.trim().toLowerCase()).filter(s => s !== "");
             const names = document.getElementById('filterNama').value.split(',').map(s => s.trim().toLowerCase()).filter(s => s !== "");
-            const colTargetKode = document.getElementById('selKode').value;
-            const colTargetNama = Array.from(document.getElementById('selPerawat').selectedOptions).map(o => o.value);
 
-            const filtered = sheetJson.filter(row => {
-                // Logika Kode (OR)
-                const valK = String(row[colTargetKode] || "").toLowerCase();
-                const matchK = kodes.length === 0 || kodes.some(k => valK.includes(k));
+            // Kita cari di seluruh baris rawData (mulai baris ke-4 untuk menghindari header)
+            const hasil = rawData.slice(3).filter(row => {
+                const valKode = String(row[selectedKodeCol] || "").toLowerCase();
+                const matchKode = kodes.length === 0 || kodes.some(k => valKode.includes(k));
 
-                // Logika Nama (OR) di semua kolom perawat terpilih
-                const matchN = names.length === 0 || names.some(n => {
-                    return colTargetNama.some(cn => String(row[cn] || "").toLowerCase().includes(n));
+                const matchNama = names.length === 0 || names.some(n => {
+                    return selectedNamaCols.some(cIdx => String(row[cIdx] || "").toLowerCase().includes(n));
                 });
 
-                return matchK && matchN;
+                return matchKode && matchNama && valKode.trim() !== "";
             });
 
-            renderTable(filtered);
+            tampilkanHasil(hasil);
         }
 
-        function renderTable(data) {
+        function tampilkanHasil(data) {
             const hSec = document.getElementById('hasilSection');
-            const hHead = document.getElementById('headTabel');
-            const hBody = document.getElementById('bodyTabel');
-            
             hSec.classList.remove('hidden');
             document.getElementById('jumlahData').innerText = data.length;
-            hHead.innerHTML = ""; hBody.innerHTML = "";
             
+            const head = document.getElementById('headTabel');
+            const body = document.getElementById('bodyTabel');
+            head.innerHTML = ""; body.innerHTML = "";
+
             if(data.length === 0) return;
 
-            // Header - Hanya tampilkan kolom yang ada datanya
-            Object.keys(data[0]).forEach(k => {
+            // Buat header sederhana berdasarkan nomor kolom
+            const trH = document.createElement('tr');
+            rawData[2].forEach(h => { // Ambil nama kolom dari baris ke-3 mentah
                 const th = document.createElement('th');
-                th.className = "p-3 border-b text-slate-500 font-bold uppercase tracking-wider";
-                th.innerText = k;
-                hHead.appendChild(th);
+                th.className = "p-2 border font-bold uppercase";
+                th.innerText = h;
+                trH.appendChild(th);
             });
+            head.appendChild(trH);
 
-            // Rows
             data.forEach(row => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-blue-50 transition-colors";
-                Object.values(row).forEach(v => {
+                row.forEach(cell => {
                     const td = document.createElement('td');
-                    td.className = "p-3 border-b text-slate-700";
-                    td.innerText = v;
+                    td.className = "p-2 border whitespace-nowrap";
+                    td.innerText = cell;
                     tr.appendChild(td);
                 });
-                hBody.appendChild(tr);
+                body.appendChild(tr);
             });
             hSec.scrollIntoView({behavior: "smooth"});
         }
