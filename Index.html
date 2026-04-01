@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekap Jaga Perawat - Magelang</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body class="bg-slate-50 min-h-screen p-3 md:p-8">
+    <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+        <div class="bg-blue-600 p-6 text-white text-center">
+            <h1 class="text-2xl font-bold">Rekap Tindakan Perawat</h1>
+            <p class="text-blue-100 text-sm">Upload Excel & Filter Cepat via Android</p>
+        </div>
+
+        <div class="p-6 space-y-5">
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2 font-mono">STEP 1: PILIH FILE EXCEL</label>
+                <input type="file" id="fileInput" accept=".xlsx, .xls" 
+                    class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor:pointer"/>
+            </div>
+
+            <div id="setupSection" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg border border-dashed border-slate-300">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Kolom Kode (A)</label>
+                    <select id="selKode" class="w-full p-2 rounded border bg-white text-sm"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Kolom Perawat (S,T,U)</label>
+                    <select id="selPerawat" class="w-full p-2 rounded border bg-white text-sm" multiple size="3"></select>
+                    <span class="text-[10px] text-slate-400">*Gunakan Ctrl/Cmd (PC) atau tahan (HP) untuk pilih >1 kolom</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Kode Tindakan (OR)</label>
+                    <input type="text" id="filterKode" placeholder="Contoh: 613, 614, 620" 
+                        class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none shadow-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Perawat (OR)</label>
+                    <input type="text" id="filterNama" placeholder="Contoh: wiwid, wiwi, wiwit" 
+                        class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none shadow-sm">
+                </div>
+                <button onclick="jalankanRekap()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-all transform active:scale-95 shadow-lg">
+                    Cari & Tampilkan Data
+                </button>
+            </div>
+        </div>
+
+        <div id="hasilSection" class="hidden p-6 bg-white border-t">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-slate-800">📊 Hasil Rekap: <span id="jumlahData" class="text-blue-600">0</span> Entri</h3>
+                <button onclick="window.print()" class="text-xs text-blue-600 underline">Cetak / Save PDF</button>
+            </div>
+            <div class="overflow-x-auto border rounded-lg shadow-inner bg-slate-50 max-h-[400px]">
+                <table class="w-full text-xs text-left border-collapse">
+                    <thead class="bg-slate-200 sticky top-0">
+                        <tr id="headTabel"></tr>
+                    </thead>
+                    <tbody id="bodyTabel" class="divide-y divide-slate-200"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let dataMentah = [];
+
+        // Handler File
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const wb = XLSX.read(data, {type: 'array'});
+                dataMentah = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                
+                if(dataMentah.length > 0) {
+                    isiPilihanKolom(Object.keys(dataMentah[0]));
+                }
+            };
+            reader.readAsArrayBuffer(e.target.files[0]);
+        });
+
+        function isiPilihanKolom(cols) {
+            const sKode = document.getElementById('selKode');
+            const sPerawat = document.getElementById('selPerawat');
+            sKode.innerHTML = ""; sPerawat.innerHTML = "";
+            
+            cols.forEach(c => {
+                sKode.add(new Option(c, c));
+                sPerawat.add(new Option(c, c));
+            });
+            document.getElementById('setupSection').classList.remove('hidden');
+        }
+
+        function jalankanRekap() {
+            const kodes = document.getElementById('filterKode').value.split(',').map(s => s.trim().toLowerCase()).filter(s => s !== "");
+            const names = document.getElementById('filterNama').value.split(',').map(s => s.trim().toLowerCase()).filter(s => s !== "");
+            const colK = document.getElementById('selKode').value;
+            const colsP = Array.from(document.getElementById('selPerawat').selectedOptions).map(o => o.value);
+
+            if(kodes.length === 0 && names.length === 0) {
+                alert("Isi minimal satu kriteria pencarian!");
+                return;
+            }
+
+            const hasil = dataMentah.filter(row => {
+                // Logika Match Kode
+                const valKode = String(row[colK] || "").toLowerCase();
+                const matchKode = kodes.length === 0 || kodes.some(k => valKode.includes(k));
+
+                // Logika Match Nama di kolom-kolom yang dipilih (S, T, U)
+                const matchNama = names.length === 0 || names.some(n => {
+                    return colsP.some(cp => String(row[cp] || "").toLowerCase().includes(n));
+                });
+
+                return matchKode && matchNama;
+            });
+
+            tampilkanTabel(hasil);
+        }
+
+        function tampilkanTabel(data) {
+            const hSec = document.getElementById('hasilSection');
+            const hHead = document.getElementById('headTabel');
+            const hBody = document.getElementById('bodyTabel');
+            
+            hSec.classList.remove('hidden');
+            document.getElementById('jumlahData').innerText = data.length;
+            
+            // Reset Tabel
+            hHead.innerHTML = ""; hBody.innerHTML = "";
+            if(data.length === 0) return;
+
+            // Header
+            Object.keys(data[0]).forEach(key => {
+                const th = document.createElement('th');
+                th.className = "p-3 font-bold border-b";
+                th.innerText = key;
+                hHead.appendChild(th);
+            });
+
+            // Rows
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-blue-50";
+                Object.values(row).forEach(val => {
+                    const td = document.createElement('td');
+                    td.className = "p-3 border-b truncate max-w-[150px]";
+                    td.innerText = val;
+                    tr.appendChild(td);
+                });
+                hBody.appendChild(tr);
+            });
+            
+            hSec.scrollIntoView({behavior: "smooth"});
+        }
+    </script>
+</body>
+</html>
