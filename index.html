@@ -16,10 +16,10 @@
         
         <div class="bg-indigo-700 p-5 text-white shadow-md flex justify-between items-center">
             <div>
-                <h1 class="text-xl font-black tracking-tight uppercase italic">Rekap Jaga v6</h1>
-                <p class="text-[10px] opacity-80 font-bold uppercase">Multi-Column Search & Exact Match</p>
+                <h1 class="text-xl font-black tracking-tight uppercase italic">Rekap Jaga v8</h1>
+                <p class="text-[10px] opacity-80 font-bold uppercase">Smart Night Shift & Multi-Column Detection</p>
             </div>
-            <button onclick="location.reload()" class="text-[10px] bg-indigo-800 hover:bg-indigo-900 px-3 py-1 rounded-full font-bold transition shadow-inner">RESET APP</button>
+            <button onclick="location.reload()" class="text-[10px] bg-indigo-800 hover:bg-indigo-900 px-3 py-1 rounded-full font-bold transition shadow-inner text-white">RESET APP</button>
         </div>
 
         <div class="p-4 space-y-6">
@@ -28,20 +28,20 @@
                 <input type="file" id="fileInput" accept=".xlsx, .xls" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer"/>
             </div>
 
-            <div id="step2" class="hidden space-y-4 animate-in fade-in duration-500">
+            <div id="step2" class="hidden space-y-4">
                 <div class="flex items-center gap-2 border-l-4 border-orange-500 pl-3">
-                    <h2 class="text-sm font-black text-slate-700 uppercase">2. Tentukan Kolom Target</h2>
+                    <h2 class="text-sm font-black text-slate-700 uppercase tracking-tighter">2. Tentukan Kolom (Klik pada Tabel)</h2>
                 </div>
                 <div class="flex gap-2 overflow-x-auto pb-2">
-                    <button id="btnSetKode" onclick="setMode('kode')" class="shrink-0 bg-blue-600 text-white px-4 py-2 rounded-lg text-[10px] font-black shadow hover:bg-blue-700 transition">🎯 PILIH KOLOM KODE</button>
-                    <button id="btnSetNama" onclick="setMode('nama')" class="shrink-0 bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-[10px] font-black shadow hover:bg-slate-300 transition">👥 PILIH KOLOM NAMA (Bisa >3)</button>
+                    <button id="btnSetKode" onclick="setMode('kode')" class="shrink-0 bg-blue-600 text-white px-4 py-2 rounded-lg text-[10px] font-black shadow hover:bg-blue-700 transition">🎯 KOLOM KODE</button>
+                    <button id="btnSetNama" onclick="setMode('nama')" class="shrink-0 bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-[10px] font-black shadow hover:bg-slate-300 transition uppercase">👥 SEMUA KOLOM NAMA (Termasuk yg Geser)</button>
                 </div>
                 <div class="overflow-x-auto border rounded-lg bg-slate-50 max-h-72 shadow-inner border-slate-200">
                     <table id="previewTable" class="w-full text-[10px] text-left border-collapse cursor-pointer"></table>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200 text-[11px] font-medium">
-                    <div class="flex items-center gap-2 text-blue-700">📌 Kode: <b id="infoKode">-</b></div>
-                    <div class="flex items-center gap-2 text-emerald-700">📌 Nama: <b id="infoNama">-</b></div>
+                    <div class="flex items-center gap-2 text-blue-700 font-bold">📌 KODE: <span id="infoKode" class="bg-blue-100 px-2 rounded">-</span></div>
+                    <div class="flex items-center gap-2 text-emerald-700 font-bold">📌 NAMA: <span id="infoNama" class="bg-emerald-100 px-2 rounded">-</span></div>
                     <button onclick="kunciKolom()" class="md:col-span-2 w-full bg-indigo-600 text-white font-black py-3 rounded-xl shadow-lg mt-2 text-xs hover:bg-indigo-700 active:scale-95 transition tracking-widest">KUNCI KONFIGURASI</button>
                 </div>
             </div>
@@ -49,12 +49,12 @@
             <div id="step3" class="hidden space-y-4 pt-4 border-t-2 border-dashed border-slate-200">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="space-y-1">
-                        <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Kode Tindakan (Pisahkan Koma)</label>
-                        <input type="text" id="filterKode" placeholder="Kosongkan = Tampil Semua" class="w-full p-3 border-2 border-slate-200 rounded-xl outline-none focus:border-indigo-500 shadow-sm text-sm font-bold uppercase">
+                        <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Kode Tindakan</label>
+                        <input type="text" id="filterKode" placeholder="Contoh: 613, 620" class="w-full p-3 border-2 border-slate-200 rounded-xl outline-none focus:border-indigo-500 shadow-sm text-sm font-bold uppercase">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[10px] font-black text-slate-500 uppercase ml-1 tracking-tighter">Nama Perawat (Exact Match, Pisahkan Koma)</label>
-                        <input type="text" id="filterNama" placeholder="Cari: Wiwi, Mila" class="w-full p-3 border-2 border-slate-200 rounded-xl outline-none focus:border-indigo-500 shadow-sm text-sm font-bold uppercase">
+                        <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Nama Perawat (Exact)</label>
+                        <input type="text" id="filterNama" placeholder="Contoh: Wiwi, Mila" class="w-full p-3 border-2 border-slate-200 rounded-xl outline-none focus:border-indigo-500 shadow-sm text-sm font-bold uppercase">
                     </div>
                 </div>
                 <button onclick="jalankanProses()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl shadow-xl transition active:scale-95 text-lg tracking-[0.2em]">PROSES REKAP</button>
@@ -63,7 +63,7 @@
             <div id="hasilSection" class="hidden space-y-4">
                 <div id="summaryArea"></div>
                 <div class="flex justify-between items-end border-b-2 border-slate-100 pb-2">
-                    <h3 class="font-black text-slate-800 text-sm">TOTAL TEMUAN: <span id="jumlahData" class="text-indigo-600 text-2xl">0</span></h3>
+                    <h3 class="font-black text-slate-800 text-sm uppercase">Detail Temuan: <span id="jumlahData" class="text-indigo-600 text-2xl">0</span></h3>
                     <button onclick="window.print()" class="text-[10px] font-bold text-indigo-600 border border-indigo-200 px-3 py-1 rounded hover:bg-indigo-50 transition">CETAK / PDF</button>
                 </div>
                 <div class="overflow-x-auto border rounded-xl shadow-md bg-white max-h-[600px]">
@@ -97,11 +97,11 @@
             document.getElementById('step2').classList.remove('hidden');
             const table = document.getElementById('previewTable');
             table.innerHTML = "";
-            rawData.slice(0, 30).forEach((row, rIdx) => {
+            rawData.slice(0, 35).forEach((row, rIdx) => {
                 const tr = document.createElement('tr');
                 row.forEach((cell, cIdx) => {
                     const td = document.createElement(rIdx < 3 ? 'th' : 'td');
-                    td.className = `p-2 border border-slate-200 min-w-[100px] whitespace-nowrap ${rIdx < 3 ? 'bg-slate-100 font-black' : ''}`;
+                    td.className = `p-2 border border-slate-200 min-w-[100px] whitespace-nowrap ${rIdx < 3 ? 'bg-slate-100 font-black text-slate-600' : ''}`;
                     td.innerText = cell;
                     td.onclick = () => handleSelect(cIdx, cell);
                     td.setAttribute('data-col', cIdx);
@@ -119,14 +119,8 @@
         }
 
         function handleSelect(cIdx, label) {
-            if (curMode === 'kode') { 
-                idxKode = cIdx; 
-                document.getElementById('infoKode').innerText = `Kolom ${cIdx+1}`; 
-            } else { 
-                if (!idxNama.includes(cIdx)) idxNama.push(cIdx); 
-                else idxNama = idxNama.filter(i => i !== cIdx); 
-                document.getElementById('infoNama').innerText = idxNama.map(i => i + 1).join(', '); 
-            }
+            if (curMode === 'kode') { idxKode = cIdx; document.getElementById('infoKode').innerText = `Kol ${cIdx+1}`; }
+            else { if (!idxNama.includes(cIdx)) idxNama.push(cIdx); else idxNama = idxNama.filter(i => i !== cIdx); document.getElementById('infoNama').innerText = idxNama.map(i => i + 1).sort((a,b)=>a-b).join(', '); }
             updateHighlight();
         }
 
@@ -137,7 +131,7 @@
         }
 
         function kunciKolom() {
-            if (idxKode === null || idxNama.length === 0) return alert("Pilih kolom dulu, Mas!");
+            if (idxKode === null || idxNama.length === 0) return alert("Pilih kolom target dulu, Mas!");
             document.getElementById('step3').classList.remove('hidden');
         }
 
@@ -148,22 +142,16 @@
             const hasil = rawData.slice(3).filter(row => {
                 const rowK = String(row[idxKode] || "").trim().toLowerCase();
                 if (rowK === "") return false;
-                
                 const matchK = valK.length === 0 || valK.some(k => rowK.includes(k));
-                
-                // LOGIKA EXACT MATCH: Nama harus sama persis (setelah di-trim spasi)
                 const matchN = valN.length === 0 || valN.some(n => {
-                    return idxNama.some(i => {
-                        const cellVal = String(row[i] || "").toLowerCase().trim();
-                        return cellVal === n;
-                    });
+                    return idxNama.some(i => String(row[i] || "").toLowerCase().trim() === n);
                 });
                 return matchK && matchN;
             });
-            tampilkanHasil(hasil);
+            tampilkanHasil(hasil, valN);
         }
 
-        function tampilkanHasil(data) {
+        function tampilkanHasil(data, filterNamanya) {
             const hSec = document.getElementById('hasilSection');
             const head = document.getElementById('headTabel');
             const body = document.getElementById('bodyTabel');
@@ -172,40 +160,51 @@
             document.getElementById('jumlahData').innerText = data.length;
             head.innerHTML = ""; body.innerHTML = ""; sumArea.innerHTML = "";
 
-            const counts = {};
-            data.forEach(r => { const k = String(r[idxKode]).trim(); counts[k] = (counts[k] || 0) + 1; });
-            const sumDiv = document.createElement('div');
-            sumDiv.className = "flex flex-wrap gap-2 p-3 bg-indigo-50 border border-indigo-100 rounded-xl mb-4";
-            let sumHTML = '<span class="w-full text-[10px] font-black text-indigo-800 mb-1 tracking-widest uppercase">Ringkasan Jumlah Per Kode:</span>';
-            Object.keys(counts).sort().forEach(k => { 
-                sumHTML += `<div class="bg-white px-3 py-1 rounded-lg shadow-sm border border-indigo-200 text-[11px]"><b>${k}</b>: ${counts[k]}</div>`; 
+            const countKode = {};
+            let totalMalam = 0;
+
+            data.forEach(row => {
+                const k = String(row[idxKode]).trim();
+                countKode[k] = (countKode[k] || 0) + 1;
+
+                // DETEKSI MALAM DI SEMUA KOLOM YANG DIPILIH
+                idxNama.forEach(i => {
+                    const headerTxt = String(rawData[2][i] || "").toLowerCase();
+                    const cellVal = String(row[i] || "").toLowerCase().trim();
+                    if (headerTxt.includes("malam") && (filterNamanya.length === 0 || filterNamanya.includes(cellVal))) {
+                        totalMalam++;
+                    }
+                });
             });
-            sumDiv.innerHTML = sumHTML;
+
+            const sumDiv = document.createElement('div');
+            sumDiv.className = "space-y-2 p-3 bg-indigo-50 border border-indigo-100 rounded-xl mb-4 shadow-sm";
+            let htmlKodes = '<div class="flex flex-wrap gap-2"><span class="w-full text-[10px] font-black text-indigo-800 uppercase">Rekap Per Kode:</span>';
+            Object.keys(countKode).sort().forEach(k => { htmlKodes += `<div class="bg-white px-2 py-1 rounded border border-indigo-200 text-[10px]"><b>${k}</b>: ${countKode[k]}</div>`; });
+            htmlKodes += '</div>';
+            let htmlMalam = `<div class="pt-2 border-t border-indigo-200 flex items-center gap-2 font-black uppercase text-[10px] text-indigo-900">
+                <span>TOTAL JAGA MALAM:</span>
+                <div class="bg-slate-800 text-white px-4 py-1 rounded-full shadow-md text-xs">🌙 ${totalMalam} KALI</div>
+            </div>`;
+            sumDiv.innerHTML = htmlKodes + htmlMalam;
             sumArea.appendChild(sumDiv);
 
             if (data.length === 0) return;
 
             const trH = document.createElement('tr');
-            
-            // KOLOM UTAMA (KODE & DETAIL PASIEN)
-            const headers = [
-                { txt: "KODE", bg: "bg-slate-900" },
-                { txt: (rawData[1][idxKode+1] || "PASIEN"), bg: "bg-slate-700" },
-                { txt: (rawData[1][idxKode+4] || "NO.CM"), bg: "bg-slate-700" }
-            ];
-
-            headers.forEach(h => {
+            const mainCols = ["KODE", (rawData[1][idxKode+1] || "PASIEN"), (rawData[1][idxKode+4] || "NO.CM")];
+            mainCols.forEach((txt, i) => {
                 const th = document.createElement('th');
-                th.className = `p-3 border font-black ${h.bg} text-white sticky top-0`;
-                th.innerText = h.txt;
+                th.className = `p-3 border font-black ${i===0?'bg-slate-900':'bg-slate-700'} text-white sticky top-0 uppercase`;
+                th.innerText = txt;
                 trH.appendChild(th);
             });
 
-            // SEMUA KOLOM NAMA YANG DIPILIH
-            idxNama.sort((a,b) => a-b).forEach(i => {
+            idxNama.sort((a,b)=>a-b).forEach(i => {
                 const th = document.createElement('th');
-                th.className = "p-3 border font-black bg-emerald-800 text-white sticky top-0";
-                th.innerText = (rawData[2] && rawData[2][i]) ? rawData[2][i] : `KOLOM ${i+1}`;
+                const isMalam = String(rawData[2][i]||"").toLowerCase().includes("malam");
+                th.className = `p-3 border font-black ${isMalam?'bg-indigo-900':'bg-emerald-800'} text-white sticky top-0 uppercase`;
+                th.innerText = (rawData[2][i] || `KOLOM ${i+1}`);
                 trH.appendChild(th);
             });
             head.appendChild(trH);
@@ -214,15 +213,14 @@
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-indigo-50 odd:bg-white even:bg-slate-50/50 transition-colors";
                 
-                // KOLOM DATA UTAMA
                 const tdK = document.createElement('td'); tdK.className = "p-3 border font-black text-indigo-700 bg-indigo-50/30"; tdK.innerText = row[idxKode]; tr.appendChild(tdK);
-                const tdP = document.createElement('td'); tdP.className = "p-3 border text-slate-600"; tdP.innerText = row[idxKode+1] || "-"; tr.appendChild(tdP);
-                const tdC = document.createElement('td'); tdC.className = "p-3 border text-slate-600 font-mono"; tdC.innerText = row[idxKode+4] || "-"; tr.appendChild(tdC);
+                const tdP = document.createElement('td'); tdP.className = "p-3 border text-slate-700 font-medium"; tdP.innerText = row[idxKode+1] || "-"; tr.appendChild(tdP);
+                const tdC = document.createElement('td'); tdC.className = "p-3 border text-slate-600 font-mono text-[9px]"; tdC.innerText = row[idxKode+4] || "-"; tr.appendChild(tdC);
 
-                // KOLOM DATA NAMA
-                idxNama.sort((a,b) => a-b).forEach(i => {
+                idxNama.sort((a,b)=>a-b).forEach(i => {
                     const td = document.createElement('td');
-                    td.className = "p-3 border font-bold text-slate-700 whitespace-nowrap";
+                    const isMalam = String(rawData[2][i]||"").toLowerCase().includes("malam");
+                    td.className = `p-3 border font-bold ${isMalam?'text-indigo-900 bg-indigo-50/40':'text-slate-700'}`;
                     td.innerText = row[i] || "-";
                     tr.appendChild(td);
                 });
